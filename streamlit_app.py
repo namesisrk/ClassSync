@@ -296,19 +296,20 @@ if 'course_data_theory' in st.session_state and 'course_data_lab' in st.session_
     if course_code:
         if course_type == "Theory":
             if course_code in st.session_state.course_data_theory:
-                slot = st.selectbox("Select Slot", st.session_state.course_data_theory[course_code])
+                slot = st.sidebar.selectbox("Select Slot", st.session_state.course_data_theory[course_code])
             else:
                 st.error(f"Course code {course_code} not found in theory data.")
         else:
             if course_code in st.session_state.course_data_lab:
-                slot = st.selectbox("Select Slot", st.session_state.course_data_lab[course_code])
+                slot = st.sidebar.selectbox("Select Slot", st.session_state.course_data_lab[course_code])
             else:
                 st.error(f"Course code {course_code} not found in lab data.")
 
-        color = st.selectbox("Select Color", list(color_dict.keys()))
+        color = st.sidebar.selectbox("Select Color", list(color_dict.keys()))
 
-        if st.button("Apply Color"):
+        if st.sidebar.button("Apply Color"):
             handle_apply_color(course_code, slot, color)
+
 
 
 # Display timetable in a more compact format
