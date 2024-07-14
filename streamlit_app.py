@@ -288,24 +288,27 @@ if 'course_data_theory' in st.session_state and 'course_data_lab' in st.session_
     else:
         available_courses = list(st.session_state.course_data_lab.keys())
     
-    # Exclude already selected courses from the dropdown
-    available_courses = [course for course in available_courses if course not in st.session_state.selected_course_codes]
+    # # Exclude already selected courses from the dropdown
+    # available_courses = [course for course in available_courses if course not in st.session_state.selected_course_codes]
 
     course_code = st.sidebar.selectbox("Select Course Code", available_courses)
-    
+
     if course_code:
         if course_type == "Theory":
-            slot = st.sidebar.selectbox("Select Slot", st.session_state.course_data_theory[course_code])
-        else:
-            slot = st.sidebar.selectbox("Select Slot", st.session_state.course_data_lab[course_code])
-        
-        color = st.sidebar.selectbox("Select Color", color_options)
-        
-        if st.sidebar.button("Apply Color"):
-            if not course_code or not slot or not color:
-                st.warning("Please select a course before applying color.")
+            if course_code in st.session_state.course_data_theory:
+                slot = st.selectbox("Select Slot", st.session_state.course_data_theory[course_code])
             else:
-                handle_apply_color(course_code, slot, color)  # Pass color name, not value
+                st.error(f"Course code {course_code} not found in theory data.")
+        else:
+            if course_code in st.session_state.course_data_lab:
+                slot = st.selectbox("Select Slot", st.session_state.course_data_lab[course_code])
+            else:
+                st.error(f"Course code {course_code} not found in lab data.")
+
+        color = st.selectbox("Select Color", list(color_dict.keys()))
+
+        if st.button("Apply Color"):
+            handle_apply_color(course_code, slot, color)
 
 
 # Display timetable in a more compact format
