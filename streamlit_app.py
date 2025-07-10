@@ -100,9 +100,8 @@ st.sidebar.markdown('<h2 style=" border-radius: 10%; padding: 10px; text-align: 
 col1, col2 = st.columns([2, 1])  # Adjust the ratios as needed
 
 with col1:
-    # PDF uploaders
-    theory_pdf = st.file_uploader("Upload Theory Slots PDF", type="pdf")
-    lab_pdf = st.file_uploader("Upload Lab Slots PDF", type="pdf")
+    # Single PDF uploader
+    uploaded_pdf = st.file_uploader("Upload Course Slots PDF", type="pdf")
 
 # Add margin below the columns
 st.markdown("<br>", unsafe_allow_html=True)
@@ -117,11 +116,9 @@ with col2:
     """,
     unsafe_allow_html=True
 )
-    #st.markdown("<div style='border: 1px solid #ccc; margin-left: 200px; margin-right: -200px; border-radius: 5px; height: 200px; overflow-y: scroll;'>", unsafe_allow_html=True)
     if st.session_state.selected_course_codes:
         for code, slot in st.session_state.selected_course_codes.items():
             st.write(f"Course: {code}, Slot: {slot}")
-    
     else:
         st.markdown(
         f"""
@@ -133,17 +130,40 @@ with col2:
     )
     st.markdown("</div>", unsafe_allow_html=True)
 
-
-
-if theory_pdf and lab_pdf:
-        with st.spinner('Processing...'):
-            df_theory = pdf_to_csv(theory_pdf)
-            df_lab = pdf_to_csv(lab_pdf)
-
-            if df_theory is not None and df_lab is not None:
-                st.session_state.course_data_theory = extract_course_data(df_theory)
-                st.session_state.course_data_lab = extract_course_data(df_lab)
-                st.success("PDFs uploaded and processed successfully!")
+if uploaded_pdf:
+    with st.spinner('Processing...'):
+        # Convert PDF to DataFrame
+        df = pdf_to_csv(uploaded_pdf)
+        
+        if df is not None:
+            # Split data into theory and lab based on slot prefix
+            theory_data = {}
+            lab_data = {}
+            
+            for index, row in df.iterrows():
+                course = str(row['COURSE CODE']).strip()
+                slot = str(row['SLOT']).strip()
+                
+                # Skip empty or invalid data
+                if not course or not slot or pd.isna(course) or pd.isna(slot):
+                    continue
+                
+                # Check if slot starts with 'L' to determine if it's a lab slot
+                if slot.startswith('L'):
+                    if course in lab_data:
+                        lab_data[course].append(slot)
+                    else:
+                        lab_data[course] = [slot]
+                else:
+                    if course in theory_data:
+                        theory_data[course].append(slot)
+                    else:
+                        theory_data[course] = [slot]
+            
+            # Update session state
+            st.session_state.course_data_theory = theory_data
+            st.session_state.course_data_lab = lab_data
+            st.success("PDF processed and courses split into Theory and Lab successfully!")
 
 
     # Timetable data (example)
